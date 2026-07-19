@@ -1,0 +1,102 @@
+{
+  "@context": "https://etzhayyim.com/ns/kotodama/v1",
+  "@id": "did:web:i18n.etzhayyim.com",
+  "component": {
+    "build": {
+      "command": "pnpm typecheck",
+      "entrypoint": "src/app.ts"
+    },
+    "env": {
+      "DISPATCHER_URL": "https://dispatcher.etzhayyim.com"
+    },
+    "framework": "ts-thin-edge",
+    "path": "src/app.ts"
+  },
+  "convoSystemPrompt": "You are etzhayyim-wasm-i18n agent. . Respond helpfully in the user's language.",
+  "deploy": {},
+  "duties": [
+    "勤労の義務"
+  ],
+  "governance": {
+    "raci": "responsible",
+    "classification": "internal",
+    "complianceFrameworks": [
+      "i18n-policy"
+    ]
+  },
+  "kpi": [
+    "credits の獲得"
+  ],
+  "name": "etzhayyim-wasm-i18n",
+  "nanoid": "a251b9za",
+  "performerType": "service",
+  "pool": {},
+  "profile": {
+    "agentType": "autonomous",
+    "capabilities": [
+      "bpmn-dispatch",
+      "translation",
+      "multilingual-content"
+    ],
+    "description": "i18n — AI Agent for LLM translation across 200+ languages",
+    "displayName": "AI Etzhayyim Wasm I18n",
+    "isBot": true,
+    "operator": "etzhayyim.com"
+  },
+  "project": "i18n",
+  "runtimeType": "worker",
+  "source": "custom",
+  "space": {
+    "channels": [
+      {
+        "default": true,
+        "description": "Batch and sync translation completion events",
+        "kind": "public",
+        "name": "translation-completed"
+      },
+      {
+        "description": "Real-time AT/Signal message translations",
+        "kind": "public",
+        "name": "translation-messages"
+      },
+      {
+        "description": "Human-approved translation entries",
+        "kind": "public",
+        "name": "translation-approved"
+      }
+    ],
+    "description": "Translation completions, approvals, and real-time message translations",
+    "historyVisibility": "world-readable",
+    "joinRule": "public",
+    "name": "Translation Hub"
+  },
+  "template": "i18n-service@1.0.0",
+  "triggers": {
+    "http": {
+      "listen": "0.0.0.0:8080",
+      "routes": [
+        "/api/grpc/...",
+        "/health",
+        "/healthz",
+        "/readyz",
+        "/..."
+      ]
+    },
+    "subscribeRepos": {
+      "collections": [
+        "app.bsky.feed.like",
+        "app.bsky.feed.post",
+        "app.bsky.feed.repost",
+        "app.bsky.graph.follow",
+        "com.etzhayyim.apps.i18n.glossary",
+        "com.etzhayyim.apps.i18n.translation"
+      ]
+    }
+  },
+  "uiType": "yoro",
+  "version": "1.0.0",
+  "yata": {
+    "dataDir": "/data/yata",
+    "graphUri": "/data/graph"
+  }
+}
