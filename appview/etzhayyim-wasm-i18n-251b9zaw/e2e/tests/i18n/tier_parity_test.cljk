@@ -1,0 +1,22 @@
+(ns i18n.tier-parity-test
+  "aiueos/i18n_tier.cljk（判定コア）と正本ピン値（e2e language-registry.spec.ts /
+  AGENTS.md）の parity。registry 件数規約と自動翻訳の対象規則が一致する。"
+  (:require [clojure.test :refer [deftest is testing]]
+            [clojure.string :as str]
+            ["fs" :as fs]))
+
+(def spec
+  (fs/readFileSync
+   (str/join "/" ["appview" "etzhayyim-wasm-i18n-251b9zaw" "e2e" "tests" "language-registry.spec.ts"])
+   "utf8"))
+
+(def agents (fs/readFileSync "AGENTS.md" "utf8"))
+
+(deftest registry-conventions-match-guest
+  (testing "guest test-registry: tier 1 は 25、全 tier は 200+（下限 100）"
+    (is (str/includes? spec "body.total).toBe(25)"))
+    (is (str/includes? spec "toBeGreaterThanOrEqual(100)")))
+  (testing "guest test-xlate / test-source: 自動翻訳は Tier 1+2 かつ source でない"
+    (is (str/includes? agents "Tier 1+2"))
+    (is (str/includes? agents "149"))
+    (is (str/includes? agents "≠ source"))))

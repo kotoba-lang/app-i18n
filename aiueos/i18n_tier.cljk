@@ -1,0 +1,78 @@
+(ns i18n.tier
+  "i18n 言語 tier 判定コア — itonami dapp bundle（pure, :effects #{}）。
+
+  翻訳サービスの言語 tier の判定（正本: AGENTS.md + e2e の
+  language-registry.spec.ts のピン値）:
+
+  - **yoro 投稿の自動翻訳は Tier 1+2（149 言語 = 完全聖書 + 新約）**で、
+    **source 言語には翻訳しない**（for each Tier 1+2 lang (≠ source)）。
+  - registry の tierLimit による件数規約: tier 1 は**ちょうど 25**、
+    Tier 1+2 累積は **149**、全 tier（tierLimit 4）は **200+**（下限 100）。
+  - RTL メタデータ（ar / he / fa 等）は registry が持つ（host 側の情報）。
+
+  auto-xlate: 1 = 翻訳対象（Tier 1+2 かつ source でない）/ 0 = 対象外
+  registry-judgment のエラービット（0 = 規則どおり）:
+    1 :tier1-count   tier 1 が 25 でない
+    2 :tier12-count  Tier 1+2 累積が 149 でない
+    4 :too-few       全 tier が 100 未満（200+ の主張に反する）
+
+  実行 host はスカラーのみ = KIR v3 / i64/direct ABI（kernel/selfhost 両対応）。
+
+  テストはゼロ引数 test-*、戻り 1/0:
+  <amu> test aiueos/i18n_tier.cljk"
+  (:export [main auto-xlate registry-judgment coverage-tier tier-consistent
+            test-xlate test-source test-deep-tier test-registry
+            test-registry-bad test-fail-closed test-coverage]))
+
+(defn main [] :i64
+  0)
+
+(defn auto-xlate [tier :i64 is-source :i64] :i64
+  (if (and (<= tier 2) (= is-source 0)) 1 0))
+
+(defn coverage-tier [bible-coverage :i64] :i64
+  ;; bibleCoverageToTier の唯一の対応: 1=full / 2=nt / 3=portions / 4=none
+  (if (and (>= bible-coverage 1) (<= bible-coverage 4)) bible-coverage -1))
+
+(defn tier-consistent [tier :i64 bible-coverage :i64] :i64
+  ;; bibleCoverage と食い違う tier の手設定は禁止
+  (if (and (= tier (coverage-tier bible-coverage)) (not= tier -1)) 1 0))
+
+(defn registry-judgment [tier-limit :i64 n-langs :i64] :i64
+  (if (= tier-limit 1)
+    (if (= n-langs 25) 0 1)
+    (if (= tier-limit 2)
+      (if (= n-langs 149) 0 2)
+      (if (>= n-langs 100) 0 4))))
+
+(defn test-coverage [] :i64
+  ;; 唯一の対応（1=full→1 / 2=nt→2 / 3=portions→3 / 4=none→4）と手設定禁止
+  (if (= (+ (tier-consistent 1 1) (tier-consistent 2 2) (tier-consistent 3 3) (tier-consistent 4 4)
+            (tier-consistent 1 2) (tier-consistent 2 1) (tier-consistent 0 9))
+         4)
+    1 0))
+
+;; --- tests（戻り 1 = pass） ------------------------------------------------
+
+(defn test-xlate [] :i64
+  ;; Tier 1+2 かつ source でない → 翻訳
+  (if (= (+ (auto-xlate 1 0) (auto-xlate 2 0)) 2) 1 0))
+
+(defn test-source [] :i64
+  ;; source 言語には翻訳しない
+  (if (= (auto-xlate 1 1) 0) 1 0))
+
+(defn test-deep-tier [] :i64
+  ;; Tier 3 以下は yoro 自動翻訳の対象外
+  (if (= (+ (auto-xlate 3 0) (auto-xlate 4 0)) 0) 1 0))
+
+(defn test-registry [] :i64
+  ;; 25 / 149 / 200+（下限 100）
+  (if (= (+ (registry-judgment 1 25) (registry-judgment 2 149) (registry-judgment 4 200)) 0) 1 0))
+
+(defn test-registry-bad [] :i64
+  (if (= (+ (registry-judgment 1 24) (registry-judgment 2 148) (registry-judgment 4 99)) 7) 1 0))
+
+(defn test-fail-closed [] :i64
+  ;; 境界値（25 / 149 / 100）自体は違反にしない = fail closed の輪郭
+  (if (= (+ (registry-judgment 1 25) (registry-judgment 2 149) (registry-judgment 4 100)) 0) 1 0))
