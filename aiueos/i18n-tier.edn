@@ -1,0 +1,18 @@
+;; app-i18n — itonami（dapp）の aiueos アプリ記述子（notes.edn 形）。
+;; 判定コアは aiueos/i18n_tier.cljk（言語 tier と自動翻訳対象の判定）。
+;; 正本は AGENTS.md + e2e language-registry.spec.ts のピン値。pure（:effects #{}）。
+{:aiueos/component :app/i18n-tier
+ :aiueos/kind :app
+ :aiueos/trust :untrusted
+ :aiueos/source "i18n_tier.cljk"
+ :aiueos/wasm "i18n_tier.wasm"
+ :aiueos/entry "main"
+ :aiueos/args []
+ :aiueos/imports #{}
+ :aiueos/exports #{:app/main
+                   :app/auto-xlate
+                   :app/registry-judgment
+                   :app/coverage-tier
+                   :app/tier-consistent}
+ :aiueos/effects #{}
+ :aiueos/limits {:memory-pages 16 :fuel 5000000}}
